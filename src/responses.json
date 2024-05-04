@@ -1,0 +1,69 @@
+{
+  "greetings": {
+    "triggers": ["hi", "hello", "hey", "hai", "alo", "ayyy", "wsup", "yo", "sup"],
+    "responses": [
+      "Hello!",
+      "Hi there!",
+      "Greetings!",
+      "Hey there! How may I help you?",
+      "Hello there!",
+      "Hi there!!"
+    ]
+  },
+  "care": {
+    "triggers": ["how are you", "what's up"],
+    "responses": [
+      "I'm doing well, thank you.\nAnd How are you feeling?",
+      "I'm fine, thanks for asking.\nAnd you?",
+      "I am great! How about you?"
+    ]
+  },
+  "care_response_positive": {
+    "triggers": [
+      "i am doing good",
+      "i am doing great",
+      "i am doing awesome",
+      "i am doing fine",
+      "i am awesome",
+      "i am good",
+      "i am fine",
+      "i am great"
+    ],
+    "responses": [
+      "That is awesome!",
+      "I'm glad to hear that!",
+      "Great to hear that!",
+      "Yay! I am happy for you!"
+    ]
+  },
+  "name_inquiry": {
+    "triggers": ["what's your name", "who are you"],
+    "responses": [
+      "My name is Loopy",
+      "You can call me Loopy.",
+      "I'm Loopy! A chatbot made by Sunbreeze."
+    ]
+  },
+  "farewell": {
+    "triggers": ["bye", "goodbye", "see you later", "exit", "i gotta go", "i have to go", "bye for now", "bye bye", "see ya"],
+    "responses": ["Goodbye!", "Farewell!", "Bye now!"]
+  },
+  "fascination": {
+    "triggers": [
+      "interesting",
+      "that's interesting",
+      "how interesting",
+      "wow",
+      "wow, that's amazing",
+      "wow, that's cool"
+    ],
+    "responses": [
+      "I'm glad you find it interesting!",
+      "Yes, it's quite fascinating, isn't it?",
+      "I thought you might find that intriguing.",
+      "I'm glad you're impressed!",
+      "It's quite something, isn't it?",
+      "I'm happy you think so!"
+    ]
+  }
+}
