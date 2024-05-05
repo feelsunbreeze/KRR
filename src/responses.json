@@ -20,11 +20,15 @@
   },
   "care_response_positive": {
     "triggers": [
+      "i am doing so good",
       "i am doing good",
       "i am doing great",
       "i am doing awesome",
+      "i am doing so amazing",
+      "i am doing amazing",
       "i am doing fine",
       "i am awesome",
+      "i am amazing",
       "i am good",
       "i am fine",
       "i am great"

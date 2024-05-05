@@ -91,7 +91,7 @@ def create_node(rule_or_fact):
     graph.run(query)
 
 
-def fetch_data_from_neo4j(name):
+def fetch_all_data_from_neo4j(name):
     query = f"""
         MATCH (n:SocialNetwork {{name: "{name}"}})-[r]-(related)
         RETURN startNode(r) as start, endNode(r) as end, type(r) as type
@@ -127,7 +127,6 @@ def import_prolog_file(file_path):
             if line and not line.startswith('%'):
                 if ":-" in line:
                     line = process_line(line)
-                    print("PROCESSED LINE: ", line)
                 else:
                     line = line.lower()
                 prolog_queries.append(line)
@@ -167,5 +166,6 @@ def init_backend(file_name=None):
         
         kb = pl.KnowledgeBase("kb")
         kb(prolog_data)
+        print(prolog_data)
         for data in prolog_data:
             create_node(data.strip())

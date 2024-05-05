@@ -16,14 +16,17 @@ responses = load_responses_from_json("responses.json")
 
 def get_response(input_text, mode, tags=None):
     input_text = input_text.lower()
-    if input_text == "mode prolog" and mode == "prolog":
-        return Fore.LIGHTMAGENTA_EX + "You are already in Prolog mode." + Style.RESET_ALL
     if mode == "prolog":
+        if input_text == "mode prolog":
+            return Fore.LIGHTMAGENTA_EX + "You are already in Prolog mode." + Style.RESET_ALL
+        
         capitalized_text = ' '.join([word.capitalize() for word in input_text.split()])
         tags = pos_tag(capitalized_text.split())
         if tags[0][0].lower() == "who" or tags[0][0].lower() == "what":
+            if sum(1 for word, tag in tags if tag == 'NNP') > 1:
+                return "YES BABY"
             name = next((word for word, tag in tags if tag == 'NNP'), None)
-            return to_natural_language(fetch_data_from_neo4j(name))
+            return to_natural_language(fetch_all_data_from_neo4j(name))
 
         if "define" in input_text:
             words = input_text.split()
@@ -40,8 +43,8 @@ def get_response(input_text, mode, tags=None):
             pattern = f"\\b{pattern}\\b"  # Match whole words only
             if re.search(pattern, input_text):
                 return random.choice(response_category["responses"])
-    return fetch_data_from_neo4j(input_text)
-
+    
+    return UNKNOWN_TRIGGER
 def slow_print(text, delay=0.05):
     if isinstance(text, list):
         for i, item in enumerate(text):
