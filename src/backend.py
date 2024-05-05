@@ -90,8 +90,35 @@ def create_node(rule_or_fact):
 
     graph.run(query)
 
+def fetch_relationship_data_from_neo4j(relationship, name):
+    if relationship == "have" or relationship == "has":
+        relationship = relationship.upper()
+    else:
+        relationship = f"IS_{relationship.upper()}_OF"
+
+    query = f"""
+        MATCH (a)-[r:{relationship}]-(b)
+        WHERE a.name = "{name}"
+        RETURN a.name as start_node, type(r) as relationship, b.name as end_node
+    """
+    result = graph.run(query)
+    data = []
+    print(result)
+    for record in result:
+        data.append({
+            "start_node": record["start_node"],
+            "relationship": record["relationship"],
+            "end_node": record["end_node"]
+        })
+    print(data)
+    if data:
+        return data
+    return "nope"
 
 def fetch_all_data_from_neo4j(name):
+    if name == None:
+        return "Error: No name provided."
+    
     query = f"""
         MATCH (n:SocialNetwork {{name: "{name}"}})-[r]-(related)
         RETURN startNode(r) as start, endNode(r) as end, type(r) as type

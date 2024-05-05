@@ -23,8 +23,29 @@ def get_response(input_text, mode, tags=None):
         capitalized_text = ' '.join([word.capitalize() for word in input_text.split()])
         tags = pos_tag(capitalized_text.split())
         if tags[0][0].lower() == "who" or tags[0][0].lower() == "what":
-            if sum(1 for word, tag in tags if tag == 'NNP') > 1:
-                return "YES BABY"
+            print(tags)
+
+            if "have?" in input_text or "has?" in input_text or "have" in input_text or "has" in input_text:
+                name = next((word for word, tag in tags if tag == 'NNP'), None)
+                return fetch_relationship_data_from_neo4j("has", name)
+            
+            if sum(1 for _, tag in tags if tag == 'NNP') > 1:
+                result = []
+                for word, tag in tags:
+                    if tag == 'NNP':
+                        name = word
+                        result.extend(fetch_all_data_from_neo4j(name))  # use extend instead of append
+                result = [item for item in result if item != []]
+                output = to_natural_language(result)
+                output = [sentence.lower() for sentence in output]
+                print("input text lowered: " + input_text.lower(), "sentence lowered: ", output)
+                final_result = any(input_text.lower() in s[len("who is "):] for s in output)
+                if final_result:
+                    return "YAY!"
+                else:
+                    return 
+            
+                
             name = next((word for word, tag in tags if tag == 'NNP'), None)
             return to_natural_language(fetch_all_data_from_neo4j(name))
 
