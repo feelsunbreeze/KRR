@@ -40,8 +40,7 @@ def get_response(input_text, mode, tags=None):
                 nnp_list = [word.lower() for word, tag in tags if tag == 'NNP']
                 output_with_nnp = [sentence for sentence in output if nnp_list[0] in sentence]
                 output_with_nnp = [sentence.capitalize() for sentence in output_with_nnp]
-                output_with_nnp[-1] = output_with_nnp[-1].capitalize()
-                return output_with_nnp
+                return capitalize_last_word(output_with_nnp)
             
                 
             name = next((word for word, tag in tags if tag == 'NNP'), None)

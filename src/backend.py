@@ -180,6 +180,18 @@ def get_definition(word):
     else:
         return None
 
+def capitalize_last_word(sentences):
+    modified_sentences = []
+    for sentence in sentences:
+        words = sentence.split()  # Split the sentence into words
+        last_word = words[-1]     # Get the last word
+        capitalized_last_word = last_word.capitalize()  # Capitalize the last word
+        words[-1] = capitalized_last_word  # Replace the last word with its capitalized version
+        modified_sentence = ' '.join(words)  # Join the words back into a sentence
+        modified_sentences.append(modified_sentence)
+    return modified_sentences
+
+
 def init_backend(file_name=None):
     global graph, kb
     graph = init_neo4j()
