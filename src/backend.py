@@ -117,7 +117,7 @@ def fetch_relationship_data_from_neo4j(relationship, name):
 
 def fetch_all_data_from_neo4j(name):
     if name == None:
-        return "Error: No name provided."
+        return None
     
     query = f"""
         MATCH (n:SocialNetwork {{name: "{name}"}})-[r]-(related)

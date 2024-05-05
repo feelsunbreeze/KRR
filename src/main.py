@@ -23,7 +23,6 @@ def get_response(input_text, mode, tags=None):
         capitalized_text = ' '.join([word.capitalize() for word in input_text.split()])
         tags = pos_tag(capitalized_text.split())
         if tags[0][0].lower() == "who" or tags[0][0].lower() == "what":
-            print(tags)
 
             if "have?" in input_text or "has?" in input_text or "have" in input_text or "has" in input_text:
                 name = next((word for word, tag in tags if tag == 'NNP'), None)
@@ -34,20 +33,21 @@ def get_response(input_text, mode, tags=None):
                 for word, tag in tags:
                     if tag == 'NNP':
                         name = word
-                        result.extend(fetch_all_data_from_neo4j(name))  # use extend instead of append
+                        result.extend(fetch_all_data_from_neo4j(name))
                 result = [item for item in result if item != []]
                 output = to_natural_language(result)
                 output = [sentence.lower() for sentence in output]
-                print("input text lowered: " + input_text.lower(), "sentence lowered: ", output)
-                final_result = any(input_text.lower() in s[len("who is "):] for s in output)
-                if final_result:
-                    return "YAY!"
-                else:
-                    return 
+                nnp_list = [word.lower() for word, tag in tags if tag == 'NNP']
+                output_with_nnp = [sentence for sentence in output if nnp_list[0] in sentence]
+                output_with_nnp = [sentence.capitalize() for sentence in output_with_nnp]
+                output_with_nnp[-1] = output_with_nnp[-1].capitalize()
+                return output_with_nnp
             
                 
             name = next((word for word, tag in tags if tag == 'NNP'), None)
-            return to_natural_language(fetch_all_data_from_neo4j(name))
+            data = fetch_all_data_from_neo4j(name)
+            if data != None:
+                return to_natural_language(data)
 
         if "define" in input_text:
             words = input_text.split()
@@ -66,6 +66,7 @@ def get_response(input_text, mode, tags=None):
                 return random.choice(response_category["responses"])
     
     return UNKNOWN_TRIGGER
+
 def slow_print(text, delay=0.05):
     if isinstance(text, list):
         for i, item in enumerate(text):
