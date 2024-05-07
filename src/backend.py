@@ -3,6 +3,7 @@ from nltk.tokenize import word_tokenize
 from nltk.corpus import wordnet
 from nltk.tag import pos_tag
 import re
+from colorama import Fore, Style
 import pytholog as pl
 
 
@@ -35,8 +36,13 @@ def create_node(rule_or_fact):
     if ":-" in rule_or_fact: 
         rule, _ = rule_or_fact.split(":-")
         name, _ = rule.split("(")
+        print('Rule and name: ', rule, name)
         relationship = get_relationship(name)
         results = kb.query(pl.Expr(rule))
+        print(results)
+        if 'No' in results:
+            print(Fore.LIGHTRED_EX + f'\'{rule}\' rule raised an error. Re-check the prolog logic.' + Style.RESET_ALL)
+            return
         subjects = []
         subjects2 = []
         for result in results:
@@ -103,14 +109,12 @@ def fetch_relationship_data_from_neo4j(relationship, name):
     """
     result = graph.run(query)
     data = []
-    print(result)
     for record in result:
         data.append({
             "start_node": record["start_node"],
             "relationship": record["relationship"],
             "end_node": record["end_node"]
         })
-    print(data)
     if data:
         return data
     return "nope"
@@ -156,6 +160,7 @@ def import_prolog_file(file_path):
                     line = process_line(line)
                 else:
                     line = line.lower()
+                line = line.replace('.', '')  # This line removes any full stop in the line
                 prolog_queries.append(line)
     return prolog_queries
 
@@ -195,7 +200,7 @@ def capitalize_last_word(sentences):
 def init_backend(file_name=None):
     global graph, kb
     graph = init_neo4j()
-    if file_name:
+    if file_name != None:
         try:
             prolog_data = import_prolog_file(file_name)
             if prolog_data is None:
@@ -205,6 +210,5 @@ def init_backend(file_name=None):
         
         kb = pl.KnowledgeBase("kb")
         kb(prolog_data)
-        print(prolog_data)
         for data in prolog_data:
             create_node(data.strip())

@@ -1,11 +1,10 @@
 import random
 import json
-from colorama import Fore, Style
 import time
 from backend import *
 
 UNKNOWN_TRIGGER = Fore.RED + "I am not sure how to respond to that." + Style.RESET_ALL
-BOT_NAME = "Mireska"
+BOT_NAME = "Lysergamide"
 COLORS = [Fore.LIGHTRED_EX, Fore.LIGHTGREEN_EX, Fore.LIGHTYELLOW_EX, Fore.LIGHTBLUE_EX, Fore.LIGHTMAGENTA_EX, Fore.LIGHTCYAN_EX]
 
 def load_responses_from_json(file_path):
@@ -93,6 +92,8 @@ def chat():
             while True:
                 try:
                     file_name = str(input(Fore.LIGHTYELLOW_EX + "Enter the name of the Prolog file in current dir (i.e: prolog.pl) or you can skip adding a file by typing \"skip\": " + Style.RESET_ALL))
+                    if file_name == "":
+                        raise Exception("Please enter a valid file name.")
                     if file_name == "skip":
                         init_backend()
                         print(Fore.LIGHTMAGENTA_EX + "Skipping prolog file.." + Style.RESET_ALL)

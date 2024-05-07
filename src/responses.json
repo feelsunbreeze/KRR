@@ -1,6 +1,16 @@
 {
   "greetings": {
-    "triggers": ["hi", "hello", "hey", "hai", "alo", "ayyy", "wsup", "yo", "sup"],
+    "triggers": [
+      "hi",
+      "hello",
+      "hey",
+      "hai",
+      "alo",
+      "ayyy",
+      "wsup",
+      "yo",
+      "sup"
+    ],
     "responses": [
       "Hello!",
       "Hi there!",
@@ -49,7 +59,17 @@
     ]
   },
   "farewell": {
-    "triggers": ["bye", "goodbye", "see you later", "exit", "i gotta go", "i have to go", "bye for now", "bye bye", "see ya"],
+    "triggers": [
+      "bye",
+      "goodbye",
+      "see you later",
+      "exit",
+      "i gotta go",
+      "i have to go",
+      "bye for now",
+      "bye bye",
+      "see ya"
+    ],
     "responses": ["Goodbye!", "Farewell!", "Bye now!"]
   },
   "fascination": {
