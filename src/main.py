@@ -6,7 +6,7 @@ from backend import *
 HOST = get_ip()
 PORT = 1234
 UNKNOWN_TRIGGER = "I am not sure how to respond to that."  
-BOT_NAME = "Lysergamide"
+BOT_NAME = "MuseBOT"
 COLORS = [Fore.LIGHTRED_EX, Fore.LIGHTGREEN_EX, Fore.LIGHTYELLOW_EX, Fore.LIGHTBLUE_EX, Fore.LIGHTMAGENTA_EX, Fore.LIGHTCYAN_EX]
 
 def load_responses_from_json(file_path):
@@ -141,18 +141,12 @@ def send_response(client_socket, response):
 
 def chat(app=None):
     mode = "chat"
-    rainbow_name = ""
-    for i, letter in enumerate(BOT_NAME):
-        rainbow_name += COLORS[i % len(COLORS)] + letter
-    slow_print(f"Welcome to {rainbow_name}", delay=0.01)
-    print()
-
     if app is not None:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
             server_socket.bind((HOST, PORT))
             server_socket.listen(1)
 
-            print(f"Server listening on {HOST}:{PORT}")
+            print(Fore.GREEN + f"Server listening on {HOST}:{PORT}" + Style.RESET_ALL)
 
             while True:
                 client_socket, _ = server_socket.accept()
@@ -160,10 +154,7 @@ def chat(app=None):
                 with client_socket:
                     data = client_socket.recv(1024).decode()
                     print(Fore.LIGHTCYAN_EX + "\nYou: " + Style.RESET_ALL + data)
-                    user_input = data.strip()  # Use received data as user input
-
-                    if user_input == "exit":
-                        break
+                    user_input = data.strip()
 
                     tagged_words = None
                     if user_input == "mode prolog" and mode == "chat":
@@ -240,12 +231,19 @@ def chat(app=None):
 
 if __name__ == "__main__":
     start_neo4j()
+    rainbow_name = ""
+    for i, letter in enumerate(BOT_NAME):
+        rainbow_name += COLORS[i % len(COLORS)] + letter
+    slow_print(f"Welcome to {rainbow_name}", delay=0.01)
+    print(Style.RESET_ALL + "\n")
     while True:
-        option = int(input("Do you want to use the app with mobile? 1 For Yes 2 For No"))
+        option = int(input("Do you want to use the app with mobile?\n\n1. Yes\n2. No\n3. Exit App\n\n"))
         if option == 1:
             chat(app=True)
         elif option == 2:
             chat(app=None)
+        elif option == 3:
+            break
         else:
             print("Please enter a valid option.")
         

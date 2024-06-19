@@ -219,7 +219,6 @@ def get_sentiment(words):
 def create_conversation_node(text):
     words = word_tokenize(text)
     sentiment = get_sentiment(words)
-    # Create the main conversation node with time attributes
     conversation_node = Node(
         "Conversation",
         text=text,
@@ -230,7 +229,6 @@ def create_conversation_node(text):
     )
     graph.create(conversation_node)
 
-    # Tokenize the text and create nodes for each word
     previous_word_node = None
     for word in words:
         if word == '?' or word == "!":
@@ -238,11 +236,9 @@ def create_conversation_node(text):
         word_node = Node("Word", text=word)
         graph.create(word_node)
 
-        # Connect each word node to the conversation node
         relationship = Relationship(conversation_node, "CONTAINS", word_node)
         graph.create(relationship)
 
-        # Connect each word node to the next word in order
         if previous_word_node is not None:
             next_relationship = Relationship(previous_word_node, "NEXT", word_node)
             graph.create(next_relationship)
