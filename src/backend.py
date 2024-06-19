@@ -1,13 +1,14 @@
-from py2neo import Graph
+from py2neo import Graph, Node, Relationship
+import datetime
 from nltk.tokenize import word_tokenize
 from nltk.corpus import wordnet
 from nltk.tag import pos_tag
 import re
 from colorama import Fore, Style
 import pytholog as pl
-
-
+import socket
 # Neo4j 
+
 
 def init_neo4j():
     return Graph("bolt://localhost:7687", auth=("neo4j", "12345678"))
@@ -36,10 +37,8 @@ def create_node(rule_or_fact):
     if ":-" in rule_or_fact: 
         rule, _ = rule_or_fact.split(":-")
         name, _ = rule.split("(")
-        print('Rule and name: ', rule, name)
         relationship = get_relationship(name)
         results = kb.query(pl.Expr(rule))
-        print(results)
         if 'No' in results:
             print(Fore.LIGHTRED_EX + f'\'{rule}\' rule raised an error. Re-check the prolog logic.' + Style.RESET_ALL)
             return
@@ -141,7 +140,7 @@ def fetch_all_data_from_neo4j(name):
 def process_line(line):
     processed_line = ''
     prev_end = 0
-    for match in re.finditer(r'\b[A-Za-z]\b', line):  # Match standalone letters
+    for match in re.finditer(r'\b[A-Za-z]\b', line):
         start = match.start()
         end = match.end()
         processed_line += line[prev_end:start] + line[start:end].upper()
@@ -188,18 +187,105 @@ def get_definition(word):
 def capitalize_last_word(sentences):
     modified_sentences = []
     for sentence in sentences:
-        words = sentence.split()  # Split the sentence into words
-        last_word = words[-1]     # Get the last word
-        capitalized_last_word = last_word.capitalize()  # Capitalize the last word
-        words[-1] = capitalized_last_word  # Replace the last word with its capitalized version
-        modified_sentence = ' '.join(words)  # Join the words back into a sentence
+        words = sentence.split()  
+        last_word = words[-1]     
+        capitalized_last_word = last_word.capitalize()  
+        words[-1] = capitalized_last_word  
+        modified_sentence = ' '.join(words) 
         modified_sentences.append(modified_sentence)
     return modified_sentences
 
+def get_song_location(song_name, artist):
+    song_name = ' '.join(element.capitalize() for element in song_name.split())
+    artist = artist.capitalize()
+    print(song_name, artist)
+    query = f"""
+    MATCH (n:Song {{title: "{song_name}", artist: "{artist}"}})
+    RETURN n.location
+    """
+    result = graph.run(query)
+    location = [record["n.location"] for record in result]
+    print(location[0])
+    return location[0]
+
+def get_sentiment(words):
+    if '?' in words:
+        return "Question"
+    elif '!' in words:
+        return "Exclamation"
+    else:
+        return "Statement"
+
+def create_conversation_node(text):
+    words = word_tokenize(text)
+    sentiment = get_sentiment(words)
+    # Create the main conversation node with time attributes
+    conversation_node = Node(
+        "Conversation",
+        text=text,
+        date=datetime.date.today(),
+        time=datetime.datetime.now().time(),
+        ip=IP,
+        sentiment=sentiment
+    )
+    graph.create(conversation_node)
+
+    # Tokenize the text and create nodes for each word
+    previous_word_node = None
+    for word in words:
+        if word == '?' or word == "!":
+            continue
+        word_node = Node("Word", text=word)
+        graph.create(word_node)
+
+        # Connect each word node to the conversation node
+        relationship = Relationship(conversation_node, "CONTAINS", word_node)
+        graph.create(relationship)
+
+        # Connect each word node to the next word in order
+        if previous_word_node is not None:
+            next_relationship = Relationship(previous_word_node, "NEXT", word_node)
+            graph.create(next_relationship)
+
+        previous_word_node = word_node
+
+
+def create_episodic_memory(input_text, response_text):
+    sentiment = get_sentiment(input_text)
+    episodic_node = Node("Episodic", text=input_text, date=datetime.date.today(),
+        time=datetime.datetime.now().time(),
+        ip=IP,
+        sentiment=sentiment)
+    graph.create(episodic_node)
+
+    response_node = Node("Response", text=response_text)
+    graph.create(response_node)
+
+    # Create a relationship between episodic_node and response_node
+    relationship = Relationship(episodic_node, "ANSWERED", response_node)
+    graph.create(relationship)
+
+
+def process_sentence_for_neo4j(subject, verb, obj):
+    query = f"""
+                MERGE (a:{get_node_type(subject)} {{name: '{subject}'}})
+                MERGE (b:{get_node_type(obj)} {{name: '{obj}'}})
+                MERGE (a)-[r:{verb.upper()}]->(b)
+                """
+    graph.run(query)
+
+def start_neo4j():
+    global graph, kb
+    try:
+        graph = init_neo4j()
+        if graph is None:
+            raise Exception(f"Error initializing Neo4j. Make sure it's running.")
+    except Exception as e:
+        raise Exception(f"Error initializing Neo4j. Make sure it's running. {e}")
+
 
 def init_backend(file_name=None):
-    global graph, kb
-    graph = init_neo4j()
+    global kb
     if file_name != None:
         try:
             prolog_data = import_prolog_file(file_name)
@@ -212,3 +298,16 @@ def init_backend(file_name=None):
         kb(prolog_data)
         for data in prolog_data:
             create_node(data.strip())
+
+def get_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(('10.255.255.255', 1))
+        IP = s.getsockname()[0]
+    except:
+        IP = '127.0.0.1'
+    finally:
+        s.close()
+    return IP
+
+IP = get_ip()

@@ -14,6 +14,9 @@ likes(Ali, Macaroni)
 has(Ali, car).
 Spouse(Sarah, Ali).
 wife(Sarah, Ali).
+husband(Ali, Sarah).
+married(Ali, Sarah).
+married(Sarah, Ali).
 
 father(X, Y) :- parent(X, Y), male(X)
 child(X, Y) :- parent(Y, X)
