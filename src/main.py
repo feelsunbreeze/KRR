@@ -51,16 +51,7 @@ def get_response(input_text, mode, tags=None):
                     create_conversation_node(input_text)
                     create_episodic_memory(input_text, to_natural_language(data))
                     return to_natural_language(data)
-        
-        # Handle Song Requests
-        if "play" in input_text and "by" in input_text:
-            input_text = input_text.split("play")[1].strip()
-            split_text = input_text.split("by")
-            song_name = split_text[0].strip()
-            artist_name = split_text[1].split()[0].strip(".,!?")
-            get_song_location(song_name, artist_name)
-            create_episodic_memory(input_text, f"Playing {song_name} by {artist_name}...")
-            return f'Playing {song_name} by {artist_name}...'
+    
 
         # Handle User Information Queries
         subject = None
@@ -129,14 +120,18 @@ def slow_print(text, delay=0.05):
 
 def send_response(client_socket, response):
     if isinstance(response, list):
-        # Encode each element in the list
         encoded_response = [(str(element) + ". ").encode() for element in response]
         # Send each encoded element
         for encoded_element in encoded_response:
             client_socket.sendall(encoded_element)
-    else:
-        # Directly encode and send the response if it's not a list
+    elif isinstance(response, str):  # Assuming response can be a string (normal text response)
+        print("TEXT SENT")
         client_socket.sendall(response.encode())
+    elif isinstance(response, bytes):  # If response is binary data (like a WAV file)
+        print("WAV SENT")
+        client_socket.sendall(response)
+    else:
+        raise ValueError("Unsupported response type")
 
 
 def chat(app=None):
@@ -183,14 +178,32 @@ def chat(app=None):
 
                         words = user_input.split()
                         tagged_words = pos_tag(words)
+                    
+                    # Handle Song Requests
+                    if "play" in user_input and "by" in user_input:
+                        input_text = user_input.split("play")[1].strip()
+                        split_text = input_text.split("by")
+                        song_name = split_text[0].strip()
+                        artist_name = split_text[1].split()[0].strip(".,!?")
+                        location = get_song_location(song_name, artist_name)
+                        try:
+                            with open(location, 'rb') as wav_file:
+                                wav_data = wav_file.read()
+                                send_response(client_socket, wav_data)
+                        except FileNotFoundError:
+                            send_response(client_socket, "ERR: WAV FILE NOT FOUND!")
 
-                    response = get_response(user_input, mode, tagged_words)
-                    send_response(client_socket, response)
-                    slow_print(Fore.LIGHTGREEN_EX + f"{BOT_NAME}: " + Style.RESET_ALL, delay=0.03)
-                    slow_print(response, delay=0.05)
-                    print()
-
-
+                        response = f"Playing {song_name} by {artist_name}..."
+                        create_episodic_memory(input_text, response)
+                        slow_print(Fore.LIGHTGREEN_EX + f"{BOT_NAME}: " + Style.RESET_ALL, delay=0.03)
+                        slow_print(response, delay=0.05)
+                        print()
+                    else:
+                        response = get_response(user_input, mode, tagged_words)
+                        send_response(client_socket, response)
+                        slow_print(Fore.LIGHTGREEN_EX + f"{BOT_NAME}: " + Style.RESET_ALL, delay=0.03)
+                        slow_print(response, delay=0.05)
+                        print()
                     if any(trigger in user_input.lower() for trigger in responses.get("farewell", {}).get("triggers", [])):
                         break
     else:
