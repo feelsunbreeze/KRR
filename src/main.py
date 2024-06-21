@@ -1,5 +1,6 @@
 import random
 import json
+import os
 import time
 from backend import *
 
@@ -13,7 +14,7 @@ def load_responses_from_json(file_path):
     with open(file_path, 'r') as file:
         return json.load(file)
 
-responses = load_responses_from_json("responses.json")
+responses = load_responses_from_json("C:\\Users\\Sunbreeze\\Documents\\Coding\\KRR\\src\\responses.json")
 
 def get_response(input_text, mode, tags=None):
     input_text = input_text.lower()
@@ -108,7 +109,7 @@ def get_response(input_text, mode, tags=None):
 
 def slow_print(text, delay=0.05):
     if isinstance(text, list):
-        for i, item in enumerate(text):
+        for _, item in enumerate(text):
             for char in item:
                 print(char, end='', flush=True)
                 time.sleep(delay)
@@ -118,18 +119,32 @@ def slow_print(text, delay=0.05):
             print(char, end='', flush=True)
             time.sleep(delay)
 
+
+def send_file(client_socket, file_path):
+    client_socket.sendall(b"<START>")
+
+    f = open(file_path, 'rb')
+    line = f.read(1024)
+
+    print('BEGIN TRANSFER')
+    while line:
+        client_socket.send(line)
+        line = f.read(1024)
+    f.close()
+
+    print("TRANSFER COMPLETE OF DATA")
+
+
+    client_socket.sendall(b"<END>")
+        
+
+
 def send_response(client_socket, response):
     if isinstance(response, list):
-        encoded_response = [(str(element) + ". ").encode() for element in response]
-        # Send each encoded element
-        for encoded_element in encoded_response:
-            client_socket.sendall(encoded_element)
-    elif isinstance(response, str):  # Assuming response can be a string (normal text response)
-        print("TEXT SENT")
+        for element in response:
+            client_socket.sendall((str(element) + ". ").encode())
+    elif isinstance(response, str):
         client_socket.sendall(response.encode())
-    elif isinstance(response, bytes):  # If response is binary data (like a WAV file)
-        print("WAV SENT")
-        client_socket.sendall(response)
     else:
         raise ValueError("Unsupported response type")
 
@@ -184,20 +199,18 @@ def chat(app=None):
                         input_text = user_input.split("play")[1].strip()
                         split_text = input_text.split("by")
                         song_name = split_text[0].strip()
+                        print(song_name)
                         artist_name = split_text[1].split()[0].strip(".,!?")
+                        print(artist_name)
                         location = get_song_location(song_name, artist_name)
-                        try:
-                            with open(location, 'rb') as wav_file:
-                                wav_data = wav_file.read()
-                                send_response(client_socket, wav_data)
-                        except FileNotFoundError:
-                            send_response(client_socket, "ERR: WAV FILE NOT FOUND!")
 
-                        response = f"Playing {song_name} by {artist_name}..."
-                        create_episodic_memory(input_text, response)
-                        slow_print(Fore.LIGHTGREEN_EX + f"{BOT_NAME}: " + Style.RESET_ALL, delay=0.03)
-                        slow_print(response, delay=0.05)
-                        print()
+                        send_file(client_socket, location)
+
+                        #response = f"Playing {song_name} by {artist_name}..."
+                        #create_episodic_memory(input_text, response)
+                        #slow_print(Fore.LIGHTGREEN_EX + f"{BOT_NAME}: " + Style.RESET_ALL, delay=0.03)
+                        #slow_print(response, delay=0.05)
+                        #print()
                     else:
                         response = get_response(user_input, mode, tagged_words)
                         send_response(client_socket, response)
